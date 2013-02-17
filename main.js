@@ -2,7 +2,7 @@
 
 var actions = require("./actions");
 var response = require("ringo/jsgi/response");
-load('artisan.js');
+load('peruse.js');
 
 function main(args) {
 	var fs = require('fs');
@@ -34,7 +34,7 @@ function main(args) {
 	// Check each file
 	var fileNameLength = args.fileName.length;
 	for (var i = 0; i < fileNameLength; i++) {
-		artisan.checkCode(
+		peruse.checkCode(
 			fs.open(args.fileName[i]).read(),
 			args.fileName[i],
 			args

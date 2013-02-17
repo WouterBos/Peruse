@@ -104,7 +104,7 @@ peruse.check = (function() {
       config.results.errors[config.lineCount] = new Array();
     }
     config.results.errors[config.lineCount].push(
-      str + ' on line ' + config.lineCount
+      str + ' on line ' + (config.lineCount + 1)
     );
     config.results.summary.errorCount++;
 
@@ -122,7 +122,7 @@ peruse.check = (function() {
 
       function setCommentFlag() {
         var reg = config.line.match(/[/][*].*/);
-        if (reg[0].indexOf('*/') == -1) {
+        if (reg && reg[0].indexOf('*/') == -1) {
           config.isComment = true;
         }
       }
@@ -140,7 +140,7 @@ peruse.check = (function() {
      * Checks comments that start with "/*"
      */
     multilineComments: function() {
-      if (state.isComment == false) {
+      if (state.isComment == true) {
         return false;
       }
 
@@ -148,17 +148,19 @@ peruse.check = (function() {
       onlyComment();
 
       function checkMaxLength() {
-        var maxLen = peruse.rules.MAX_LINE_LENGTH;
+        var maxLen = peruse.rules.MAX_LINE_LENGTH();
         if (config.line.length > maxLen) {
           addError('Comment longer than ' + maxLen + ' characters');
         }
       }
       function onlyComment() {
-        if (config.line.match(/[\w].*[/][*]/) != null) {
-          addError('Multiline comment should not contain any preceding code.');
+        var multilineCommentAfterCode = config.line.match(/[\w].*[/][*]/);
+        if (multilineCommentAfterCode != null &&
+            multilineCommentAfterCode[0].match(/[*][/]/) == null) {
+          addError('Multiline comment appended after code');
         }
       }
-    }
+    },
 
     /**
      * Document should not contain any tabs.
@@ -196,7 +198,7 @@ peruse.fix = (function() {
 peruse.rules = (function() {
   return {
     MAX_LINE_LENGTH: function() {
-      return 120;
+      return 100;
     }
   };
 })();
