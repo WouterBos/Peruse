@@ -31,6 +31,8 @@ var peruse = (function() {
       }
 
       print('');
+
+      return results;
     }
   };
 })();
@@ -45,11 +47,15 @@ var peruse = (function() {
  * @param  {object} arg_commandArgs Config object.
  */
 peruse.checker = function(code, arg_commandArgs) {
-  var code = code.split(/\n/);
   var results = {
-    summary: {},
-    errors: new Array()
+    summary: {
+      lineCount: 0,
+      errorCount: 0
+    },
+    errors: new Array(),
+    codeFixed: code
   };
+  var code = code.split(/\n/);
   var commandArgs = arg_commandArgs;
 
   function checkLine(line, lineCount) {
@@ -72,14 +78,13 @@ peruse.checker = function(code, arg_commandArgs) {
    * @return {object} Object with test results.
    */
   this.run = function() {
-    results.summary = {
-      lineCount: code.length,
-      errorCount: 0
-    };
+    results.summary.lineCount = code.length;
+    results.summary.errorCount = 0;
 
     for (var i = 0; i < results.summary.lineCount; i++) {
       checkLine(code[i], i);
     }
+    results.codeFixed = code.join('\n');
 
     return results;
   }
@@ -165,6 +170,15 @@ peruse.check = (function() {
     /**
      * Document should not contain any tabs.
      */
+    colons: function() {
+      if (config.line.match(/\t/) != null) {
+        addError('Tabs used', peruse.fix.tabs);
+      }
+    },
+
+    /**
+     * Document should not contain any tabs.
+     */
     tabs: function() {
       if (config.line.match(/\t/) != null) {
         addError('Tabs used', peruse.fix.tabs);
@@ -183,7 +197,7 @@ peruse.check = (function() {
 peruse.fix = (function() {
   return {
     tabs: function(line) {
-      return line.replace(/\t/, '....');
+      return line.replace(/\t/g, '    ');
     }
   };
 })();

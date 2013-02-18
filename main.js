@@ -34,11 +34,19 @@ function main(args) {
 	// Check each file
 	var fileNameLength = args.fileName.length;
 	for (var i = 0; i < fileNameLength; i++) {
-		peruse.checkCode(
-			fs.open(args.fileName[i]).read(),
+		var code = fs.open(args.fileName[i]).read();
+		var results = peruse.checkCode(
+			code,
 			args.fileName[i],
 			args
 		);
+		
+		// Save fixes
+		if (results.codeFixed != code) {
+			fs.write(args.fileName[i] + '.bak', code);
+			fs.write(args.fileName[i], results.codeFixed);
+		}
+		
 	}
 	
 	function getBool(str, flag) {
