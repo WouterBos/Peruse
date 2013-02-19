@@ -8,8 +8,10 @@ var peruse = (function() {
      * Checks the Less code
      *
      * @memberOf peruse
-     * @param  {string} code       The Less code as string.
+     * @param  {String} code The Less code as string.
+     * @param  {String} fileName The name of the file.
      * @param  {Object} commandArgs Config object.
+     * @return {Object} Test results.
      */
     checkCode: function(code, fileName, commandArgs) {
       var checker = new peruse.checker(code, commandArgs);
@@ -59,14 +61,16 @@ peruse.checker = function(code, arg_commandArgs) {
   var commandArgs = arg_commandArgs;
 
   function checkLine(line, lineCount) {
-    var config = {
+    peruse.check.setConfig({
       line: line,
       lineCount: lineCount,
       results: results,
       commandArgs: commandArgs
-    };
-
-    peruse.check.setConfig(config);
+    });
+    if (lineCount == 0) {
+      peruse.check.documentComment();
+    }
+    peruse.check.colons();
     peruse.check.tabs();
     peruse.check.multilineComments();
     results.errors = peruse.check.getErrors();
@@ -75,7 +79,7 @@ peruse.checker = function(code, arg_commandArgs) {
 
   /**
    * Starts code checking.
-   * @return {object} Object with test results.
+   * @return {object} Test results.
    */
   this.run = function() {
     results.summary.lineCount = code.length;
@@ -121,33 +125,60 @@ peruse.check = (function() {
 
 
   return {
+    /**
+     * Set local config object
+     * @param {Object} args Check configuration & data.
+     */
     setConfig: function(args) {
       config = args;
       setCommentFlag();
 
       function setCommentFlag() {
-        var reg = config.line.match(/[/][*].*/);
-        if (reg && reg[0].indexOf('*/') == -1) {
-          config.isComment = true;
+        if (config.isComment == false) {
+          var commentStart = config.line.match(/[/][*].*/);
+          if (commentStart && commentStart[0].indexOf('*/') == -1) {
+            config.isComment = true;
+          }
+        } else {
+          var commentEnd = config.line.match(/[*][/].*/);
+          if (commentEnd) {
+            config.isComment = false;
+          }
         }
       }
     },
 
+    /**
+     * Get violations total.
+     * @return {Number} Violations total.
+     */
     getErrors: function() {
       return config.results.errors;
     },
 
+    /**
+     * Get the line of code from the config object.
+     * @return {String} The line of code from the config object.
+     */
     getCode: function() {
       return config.line;
+    },
+
+    /**
+     * Document should start with a multiline comment explaining the purpose
+     * of the file.
+     */
+    documentComment: function() {
+      if (config.lineCount == 0) {
+        
+      }
     },
 
     /**
      * Checks comments that start with "/*"
      */
     multilineComments: function() {
-      if (state.isComment == true) {
-        return false;
-      }
+      if (state.isComment) return false;
 
       checkMaxLength();
       onlyComment();
@@ -168,11 +199,16 @@ peruse.check = (function() {
     },
 
     /**
-     * Document should not contain any tabs.
+     * There should not be a white-space before a colon
      */
     colons: function() {
-      if (config.line.match(/\t/) != null) {
-        addError('Tabs used', peruse.fix.tabs);
+      if (state.isComment) return false;
+
+      if (config.line.match(/[\s]+?:/) != null) {
+        addError('Space before colon', peruse.fix.colonsSpaceBefore);
+      }
+      if (config.line.match(/:\S/) != null) {
+        addError('Colon not followed by a space', peruse.fix.colonsSpaceAfter);
       }
     },
 
@@ -196,6 +232,14 @@ peruse.check = (function() {
  */
 peruse.fix = (function() {
   return {
+    colonsSpaceAfter: function(line) {
+      return line.replace(/:/g, ': ');
+    },
+
+    colonsSpaceBefore: function(line) {
+      return line.replace(/[\s]+?:/g, ':');
+    },
+
     tabs: function(line) {
       return line.replace(/\t/g, '    ');
     }
@@ -211,8 +255,7 @@ peruse.fix = (function() {
  */
 peruse.rules = (function() {
   return {
-    MAX_LINE_LENGTH: function() {
-      return 100;
-    }
+    MAX_LINE_LENGTH: 100,
+    MAX_DEPTH: 7
   };
 })();
