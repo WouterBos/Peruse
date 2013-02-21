@@ -8,8 +8,28 @@
  * Always start a mixin with some description and prefix it with something.
  */
 .pw_someClass {
-	clear: both;
+	clear: both; // Some comment on some line of code.
 	display: block;
 	color: #f00;
     background: @gp_colorHigh;
+}
+
+
+
+/**
+ * Testing large nest depth.
+ */
+.level1 {
+    .level2 {
+        .level3 {
+            .level4 {
+                .level5 {     
+                    .level6 {
+                        .level7 {
+                        }
+                    }
+                }
+            }
+        }
+    }
 }

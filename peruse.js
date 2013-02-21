@@ -52,29 +52,32 @@ peruse.checker = function(code, arg_commandArgs) {
   var results = {
     summary: {
       lineCount: 0,
-      errorCount: 0
+      errorCount: 0,
+      fixedCount: 0
     },
     errors: new Array(),
     codeFixed: code
   };
   var code = code.split(/\n/);
   var commandArgs = arg_commandArgs;
+  var check = new peruse.check();
 
   function checkLine(line, lineCount) {
-    peruse.check.setConfig({
+    check.setConfig({
       line: line,
       lineCount: lineCount,
       results: results,
       commandArgs: commandArgs
     });
     if (lineCount == 0) {
-      peruse.check.documentComment();
+      check.documentComment();
     }
-    peruse.check.colons();
-    peruse.check.tabs();
-    peruse.check.multilineComments();
-    results.errors = peruse.check.getErrors();
-    code[lineCount] = peruse.check.getCode();
+    check.nestDepth();
+    check.colons();
+    check.tabs();
+    check.multilineComments();
+    results.errors = check.getErrors();
+    code[lineCount] = check.getCode();
   }
 
   /**
@@ -99,13 +102,13 @@ peruse.checker = function(code, arg_commandArgs) {
 /**
  * Collection of helper functions to check some functionality.
  *
- * @namespace
- * @return {object} Empty object.
+ * @constructor
  */
-peruse.check = (function() {
+peruse.check = function() {
   var config;
   var state = {
-    isComment: false
+    isComment: false,
+    nestDepth: 0
   };
 
   function addError(str, fixer) {
@@ -119,109 +122,152 @@ peruse.check = (function() {
 
     if (config.commandArgs.fix == true && typeof(fixer) == 'function') {
       config.line = fixer(config.line);
+      print('FIXED');
+      config.results.summary.fixedCount++;
     }
   }
 
 
 
-  return {
-    /**
-     * Set local config object
-     * @param {Object} args Check configuration & data.
-     */
-    setConfig: function(args) {
-      config = args;
-      setCommentFlag();
+  /**
+   * Set local config object
+   * @param {Object} args Check configuration & data.
+   */
+  this.setConfig = function(args) {
+    config = args;
+    setCommentFlag();
+    setNestDepth();
 
-      function setCommentFlag() {
-        if (config.isComment == false) {
-          var commentStart = config.line.match(/[/][*].*/);
-          if (commentStart && commentStart[0].indexOf('*/') == -1) {
-            config.isComment = true;
-          }
-        } else {
-          var commentEnd = config.line.match(/[*][/].*/);
-          if (commentEnd) {
-            config.isComment = false;
-          }
+    function setCommentFlag() {
+      if (state.isComment == false) {
+        var commentStart = config.line.match(/[/][*].*/);
+        if (commentStart && commentStart[0].indexOf('*/') == -1) {
+          state.isComment = true;
         }
-      }
-    },
-
-    /**
-     * Get violations total.
-     * @return {Number} Violations total.
-     */
-    getErrors: function() {
-      return config.results.errors;
-    },
-
-    /**
-     * Get the line of code from the config object.
-     * @return {String} The line of code from the config object.
-     */
-    getCode: function() {
-      return config.line;
-    },
-
-    /**
-     * Document should start with a multiline comment explaining the purpose
-     * of the file.
-     */
-    documentComment: function() {
-      if (config.lineCount == 0) {
-        
-      }
-    },
-
-    /**
-     * Checks comments that start with "/*"
-     */
-    multilineComments: function() {
-      if (state.isComment) return false;
-
-      checkMaxLength();
-      onlyComment();
-
-      function checkMaxLength() {
-        var maxLen = peruse.rules.MAX_LINE_LENGTH();
-        if (config.line.length > maxLen) {
-          addError('Comment longer than ' + maxLen + ' characters');
+      } else {
+        var commentEnd = config.line.match(/[*][/].*/);
+        if (commentEnd) {
+          state.isComment = false;
         }
-      }
-      function onlyComment() {
-        var multilineCommentAfterCode = config.line.match(/[\w].*[/][*]/);
-        if (multilineCommentAfterCode != null &&
-            multilineCommentAfterCode[0].match(/[*][/]/) == null) {
-          addError('Multiline comment appended after code');
-        }
-      }
-    },
-
-    /**
-     * There should not be a white-space before a colon
-     */
-    colons: function() {
-      if (state.isComment) return false;
-
-      if (config.line.match(/[\s]+?:/) != null) {
-        addError('Space before colon', peruse.fix.colonsSpaceBefore);
-      }
-      if (config.line.match(/:\S/) != null) {
-        addError('Colon not followed by a space', peruse.fix.colonsSpaceAfter);
-      }
-    },
-
-    /**
-     * Document should not contain any tabs.
-     */
-    tabs: function() {
-      if (config.line.match(/\t/) != null) {
-        addError('Tabs used', peruse.fix.tabs);
       }
     }
-  };
-})();
+
+    function setNestDepth() {
+      var line = config.line;
+      var depthChange = 0;
+
+      // Strip comments
+      line = line.replace(/[/][*].*|[/][/].*/g, '');
+      var braceOpen = line.match(/{/);
+      var braceClose = line.match(/}/);
+      if (braceOpen) {
+        depthChange += braceOpen.length;
+      }
+      if (braceClose) {
+        depthChange -= braceClose.length;
+      }
+      state.nestDepth += depthChange;
+    }
+  }
+
+  /**
+   * Get violations total.
+   * @return {Number} Violations total.
+   */
+  this.getErrors = function() {
+    return config.results.errors;
+  }
+
+  /**
+   * Get the line of code from the config object.
+   * @return {String} The line of code from the config object.
+   */
+  this.getCode = function() {
+    return config.line;
+  }
+
+  /**
+   * Document should start with a multiline comment explaining the purpose
+   * of the file.
+   */
+  this.documentComment = function() {
+    if (config.lineCount == 0) {
+      var hasDocumentComment = config.line.match(/[/][*]/);
+      var firstChar = config.line.match(/^[/][*]/);
+      var firstCharError = 'First character is not the start of a ' +
+                           'multiline comment';
+      if (hasDocumentComment == null) {
+        addError('No document comment');
+      }
+      if (firstChar == null) {
+        if (hasDocumentComment == null) {
+          addError(firstCharError);
+        } else {
+          addError(firstCharError, peruse.fix.documentComment);
+        }
+      }
+    }
+  }
+
+  /**
+   * Checks comments that start with "/*"
+   */
+  this.multilineComments = function() {
+    if (state.isComment) return;
+
+    checkMaxLength();
+    onlyComment();
+
+    function checkMaxLength() {
+      var maxLen = peruse.rules.MAX_LINE_LENGTH;
+      if (config.line.length > maxLen) {
+        addError('Comment longer than ' + maxLen + ' characters');
+      }
+    }
+    function onlyComment() {
+      var multilineCommentAfterCode = config.line.match(/[\w].*[/][*]/);
+      if (multilineCommentAfterCode != null &&
+          multilineCommentAfterCode[0].match(/[*][/]/) == null) {
+        addError('Multiline comment appended after code');
+      }
+    }
+  }
+
+  /**
+   * There should not be a white-space before a colon
+   */
+  this.colons = function() {
+    if (state.isComment) return;
+
+    if (config.line.match(/[\s]+?:/) != null) {
+      addError('Space before colon', peruse.fix.colonsSpaceBefore);
+    }
+    if (config.line.match(/:\S/) != null) {
+      addError('Colon not followed by a space', peruse.fix.colonsSpaceAfter);
+    }
+  }
+
+  /**
+   * Make sure mixins are not getting too hiarchical and complex which results
+   * in very long and inefficient selectors.
+   */
+  this.nestDepth = function() {
+    if (state.isComment) return;
+
+    if (state.nestDepth > peruse.rules.MAX_DEPTH) {
+      addError('Styling too deeply nested');
+    }
+  }
+
+  /**
+   * Document should not contain any tabs.
+   */
+  this.tabs = function() {
+    if (config.line.match(/\t/) != null) {
+      addError('Tabs used', peruse.fix.tabs);
+    }
+  }
+};
 
 
 
@@ -232,14 +278,31 @@ peruse.check = (function() {
  */
 peruse.fix = (function() {
   return {
+    /**
+     * Add space after colon.
+     */
     colonsSpaceAfter: function(line) {
       return line.replace(/:/g, ': ');
     },
 
+    /**
+     * Remove characters before document comment so that it starts with
+     * the first character.
+     */
+    documentComment: function(line) {
+      return line.replace(/.+?[/][*]/g, '/*');
+    },
+
+    /**
+     * Removes space before colon.
+     */
     colonsSpaceBefore: function(line) {
       return line.replace(/[\s]+?:/g, ':');
     },
 
+    /**
+     * Changes tabs into spaces.
+     */
     tabs: function(line) {
       return line.replace(/\t/g, '    ');
     }

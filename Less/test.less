@@ -1,16 +1,19 @@
+/* foo { { { { */
+
 .level1 {
-    .level2 {
-		.level3 {
-			.level4 {
-				.level5 {
-					.level6 {
-						.level7 {
-							.level8 {
-							}
-						}
-					}
-				}
-			}
-		}
-    }
+    .level2 { // some comment { { { {
+        .level3 { /* some comment`{ { { { */
+            .level4 {/* some comment } } } } }  */
+                .level5 {     
+                    .level6 {
+                        .level7 {
+                            .level8 {
+                            }
+                        }
+                    }
+                }
+            }
+        }
+     }
 }
+
