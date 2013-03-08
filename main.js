@@ -1,7 +1,5 @@
 #!/usr/bin/env ringo
 
-var actions = require("./actions");
-var response = require("ringo/jsgi/response");
 load('peruse.js');
 
 function main(args) {

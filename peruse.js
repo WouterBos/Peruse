@@ -20,14 +20,19 @@ var peruse = (function() {
       var results = checker.run();
 
       print('Checking ' + fileName);
-      print('  ' + results.summary.errorCount + ' errors found.');
+      if (results.summary.errorCount > 0) {
+        print('  ' + results.summary.errorCount + ' errors found.');
+        print('  ' + results.summary.fixedCount + ' errors fixed.');
+      } else {
+        print('  OK');
+      }
       errorsLength1 = results.errors.length;
 
       for (var i = 0; i < errorsLength1; i++) {
         if (results.errors[i] != undefined) {
           errorsLength2 = results.errors[i].length;
           for (var ii = 0; ii < errorsLength2; ii++) {
-            print('  ' + results.errors[i][ii]);
+            print('    ' + results.errors[i][ii]);
           }
         }
       }
@@ -38,6 +43,16 @@ var peruse = (function() {
     }
   };
 })();
+
+
+
+/**
+ * Collection of regex
+ * @namespace
+ */
+peruse.regex = {
+  property: /([.#]\w*[(;]|[@\w].*[:][\W].*[^\{$])/
+};
 
 
 
@@ -69,6 +84,7 @@ peruse.checker = function(code, arg_commandArgs) {
       results: results,
       commandArgs: commandArgs
     });
+
     if (lineCount == 0) {
       check.documentComment();
     }
@@ -76,6 +92,8 @@ peruse.checker = function(code, arg_commandArgs) {
     check.colons();
     check.tabs();
     check.multilineComments();
+    check.propertiesOrder();
+
     results.errors = check.getErrors();
     code[lineCount] = check.getCode();
   }
@@ -110,21 +128,24 @@ peruse.check = function() {
     isComment: false,
     nestDepth: 0
   };
+  var propsOrder = new peruse.check.propertiesOrder();
 
   function addError(str, fixer) {
+    var fixed = '';
+
+    if (config.commandArgs.fix == true && typeof(fixer) == 'function') {
+      config.line = fixer(config.line);
+      fixed = ' (FIXED)';
+      config.results.summary.fixedCount++;
+    }
+
     if (config.results.errors[config.lineCount] == undefined) {
       config.results.errors[config.lineCount] = new Array();
     }
     config.results.errors[config.lineCount].push(
-      str + ' on line ' + (config.lineCount + 1)
+      str + ' on line ' + (config.lineCount + 1 + fixed + '.')
     );
     config.results.summary.errorCount++;
-
-    if (config.commandArgs.fix == true && typeof(fixer) == 'function') {
-      config.line = fixer(config.line);
-      print('FIXED');
-      config.results.summary.fixedCount++;
-    }
   }
 
 
@@ -134,9 +155,16 @@ peruse.check = function() {
    * @param {Object} args Check configuration & data.
    */
   this.setConfig = function(args) {
-    config = args;
+    setConfig(args);
     setCommentFlag();
     setNestDepth();
+
+    function setConfig(args) {
+      config = args;
+      config.lineClean = config.line;
+      config.lineClean = config.lineClean.replace(/[/][*].*[*][/]/g, '');
+      config.lineClean = config.lineClean.replace(/[/][/].*/g, '');
+    }
 
     function setCommentFlag() {
       if (state.isComment == false) {
@@ -153,19 +181,27 @@ peruse.check = function() {
     }
 
     function setNestDepth() {
-      var line = config.line;
+      var line = config.lineClean;
       var depthChange = 0;
 
-      // Strip comments
-      line = line.replace(/[/][*].*|[/][/].*/g, '');
-      var braceOpen = line.match(/{/);
-      var braceClose = line.match(/}/);
+      // Find open and close brace.
+      var braceOpen = line.match(/{/g);
+      var braceClose = line.match(/}/g);
+
       if (braceOpen) {
         depthChange += braceOpen.length;
+        if (braceOpen.length > 1) {
+          addError('Multiple opening curly braces');
+        }
       }
       if (braceClose) {
         depthChange -= braceClose.length;
+        if (braceClose.length > 1) {
+          addError('Multiple closing curly braces');
+        }
       }
+
+      // Store new nest depth
       state.nestDepth += depthChange;
     }
   }
@@ -242,8 +278,10 @@ peruse.check = function() {
     if (config.line.match(/[\s]+?:/) != null) {
       addError('Space before colon', peruse.fix.colonsSpaceBefore);
     }
-    if (config.line.match(/:\S/) != null) {
-      addError('Colon not followed by a space', peruse.fix.colonsSpaceAfter);
+    if (config.line.match(/:\S.*[^\{$]/) != null) {
+      if (config.line.match(/[\^{]$/) != null) {
+        addError('Colon not followed by a space', peruse.fix.colonsSpaceAfter);
+      }
     }
   }
 
@@ -266,6 +304,50 @@ peruse.check = function() {
     if (config.line.match(/\t/) != null) {
       addError('Tabs used', peruse.fix.tabs);
     }
+  }
+
+  /**
+   * Checks if styling properties are properly ordered.
+   */
+  this.propertiesOrder = function() {
+    var line = config.lineClean;
+    var braceOpen = line.match(/{/g);
+    var braceClose = line.match(/}/g);
+
+    if (braceOpen && propsOrder.length > 0) {
+      propsOrder = new peruse.check.propertiesOrder();
+    }
+
+    if (config.lineClean.match(peruse.regex.property) != null) {
+      propsOrder.addProperty(config.line);
+    }
+  }
+};
+
+
+
+/**
+ * Object for checking and fixing the style property order.
+ * @constructor
+ */
+peruse.check.propertiesOrder = function() {
+  var props = [];
+
+  this.addProperty = function(property) {
+    var id = property.match(peruse.regex.property)[0];
+    id = id.replace(/[:(;)].*/, '');
+
+    var newProp = {
+      source: property,
+      id: id
+    };
+
+    print(newProp.id);
+    props.push(newProp);
+  }
+
+  this.length = function() {
+    return props.length;
   }
 };
 
