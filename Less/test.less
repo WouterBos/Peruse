@@ -22,10 +22,10 @@ body > form {
 .gp_footer {
     @foo: 10px;
     .bar;
+    .gp_linear(@gp_colorHigh - #1a1a1a, @gp_colorHigh - #060606);
 
     border-top: 1px solid #dddddd;
     padding: @gp_gridBlockSpacing / 2;
-    .gp_linearGradient(@gp_colorHigh - #1a1a1a, @gp_colorHigh - #060606);
     
     strong {
         margin-right: 0.5em;
@@ -71,6 +71,7 @@ body > form {
     @padding: 20px;
 
     .gp_clear();
+    .gp_boxShadow(0, 0, 5px, #999999);
     position: relative;
     margin-bottom: @gp_gridBlockSpacing;
     border: 1px solid #aaa;
@@ -78,7 +79,6 @@ body > form {
     padding: @padding;
     width: @gp_desktop - (@padding*2);
     background: @gp_colorHigh;
-    .gp_boxShadow(0, 0, 5px, #999999);
         
     *.localHeading {
         .gp_heading2;
@@ -94,6 +94,7 @@ body > form {
     a {
         display: inline-block;
         .gp_borderRadius(3px, 3px, 0, 0);
+        .gp_boxShadow(0, 0, 5px, #999999);
         border: 1px solid #aaa;
         border-bottom-width: 0;
         padding: @gp_gridBlockSpacing/5 @gp_gridBlockSpacing/3;
@@ -101,12 +102,11 @@ body > form {
         font-size: 1.2em;
         text-decoration: none;
         background: @gp_colorHigh - #111;
-        .gp_boxShadow(0, 0, 5px, #999999);
     }
     a:hover {
+        .gp_boxShadow(0, 0, 5px, #333333);
         color: @gp_colorLow;
         background: @gp_colorHigh;
-        .gp_boxShadow(0, 0, 5px, #333333);
     }
     a + a {
         margin-left: @gp_gridBlockSpacing/10;
@@ -121,19 +121,19 @@ body > form {
 
 *.graphite_getCode {
     a {
+        .gp_linearGradient(@start: @gp_colorLow + #777, @end: @gp_colorLow);
+        .gp_transition(all, @time: 0.5, @easing: ease-out);
+        .gp_borderRadius(3px, 3px, 3px, 3px);
         position: relative;
         display: inline-block;
-        .gp_transition(all, @time: 0.5, @easing: ease-out);
         margin-right: 4px;
         border: 1px solid @gp_colorHigh;
-        .gp_borderRadius(3px, 3px, 3px, 3px);
         padding: 2px 4px;
         color: @gp_colorHigh;
         text-align: center;
         font-family: Consolas, "Lucida Console", "Courier New", Courier, monospace;
         text-shadow: 1px 1px 0 @gp_colorLow;
         text-decoration: none;
-        .gp_linearGradient(@start: @gp_colorLow + #777, @end: @gp_colorLow);
     }
 
     a {
@@ -149,11 +149,11 @@ body > form {
     }
     
     *.graphite_getCodeFeedback {
-        display: inline-block;
         .gp_opacity(0);
+        .gp_borderRadius(3px, 3px, 3px, 3px);
+        display: inline-block;
         margin-top: 5px;
         border: 1px solid @gp_colorLow + #888;
-        .gp_borderRadius(3px, 3px, 3px, 3px);
         padding: 1px 5px 0 5px;
         font-size: 0.9em;
         background: @gp_colorHigh - #111;

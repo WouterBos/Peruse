@@ -314,7 +314,8 @@ peruse.check = function() {
     var braceOpen = line.match(/{/g);
     var braceClose = line.match(/}/g);
 
-    if (braceOpen && propsOrder.length > 0) {
+    if (braceOpen && propsOrder.length() > 0) {
+      propsOrder.getErrors();
       propsOrder = new peruse.check.propertiesOrder();
     }
 
@@ -332,18 +333,56 @@ peruse.check = function() {
  */
 peruse.check.propertiesOrder = function() {
   var props = [];
+  var previousType = '';
+  var typeOrder = {
+    value: 0,
+    reference: 1,
+    style: 2
+  };
+  var errors = [];
 
   this.addProperty = function(property) {
     var id = property.match(peruse.regex.property)[0];
-    id = id.replace(/[:(;)].*/, '');
+    id = id.replace(/[:(;)].*/g, '');
+
+    var type = 'style';
+    if (id.match(/^@/)) {
+      type = 'value';
+    } else if (id.match(/^[.]/)) {
+      type = 'reference';
+    }
+
+    checkTypeOrder(type);
 
     var newProp = {
       source: property,
-      id: id
+      id: id,
+      type: type
     };
 
-    print(newProp.id);
+    //print(newProp.id);
+    //print('   ' + newProp.type);
     props.push(newProp);
+
+    function checkTypeOrder(type) {
+      if (typeOrder[type] < typeOrder[previousType]) {
+        print(typeOrder[type], typeOrder[previousType], id);
+        //print(property.length +
+        //  ' | Property "' + id.length + '" of type "' + type + '" cannot be ' +
+        //  'preceded by properties of type "' + previousType + '"'
+        //);
+        //errors.push(
+        //  'Property "' + id + '" of type "' + type + '" cannot be ' +
+        //  'preceded by properties of type "' + previousType + '"'
+        //);
+      }
+
+      previousType = type;
+    }
+  }
+
+  this.getErrors = function() {
+    return errors;
   }
 
   this.length = function() {
