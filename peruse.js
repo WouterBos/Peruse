@@ -107,6 +107,7 @@ peruse.checker = function(code, arg_commandArgs) {
     results.summary.errorCount = 0;
 
     for (var i = 0; i < results.summary.lineCount; i++) {
+      code[i] = code[i].replace(/\r/g, '');
       checkLine(code[i], i);
     }
     results.codeFixed = code.join('\n');
@@ -315,7 +316,14 @@ peruse.check = function() {
     var braceClose = line.match(/}/g);
 
     if (braceOpen && propsOrder.length() > 0) {
-      propsOrder.getErrors();
+      var propOrderErrors = propsOrder.getErrors();
+
+      if (propOrderErrors.length > 0) {
+        for (var i = 0; i < propOrderErrors.length; i++) {
+          addError(propOrderErrors[i]);
+        }
+      }
+
       propsOrder = new peruse.check.propertiesOrder();
     }
 
@@ -332,7 +340,6 @@ peruse.check = function() {
  * @constructor
  */
 peruse.check.propertiesOrder = function() {
-  var propsOrder = getPropsOrder();
   var props = [];
   var previousType = '';
   var typeOrder = {
@@ -382,10 +389,6 @@ peruse.check.propertiesOrder = function() {
     }
   }
 
-  function getPropsOrder() {
-
-  }
-
   /**
    * Get all errors related to the order structure.
    * @return {Array} Array of error messages.
@@ -393,12 +396,26 @@ peruse.check.propertiesOrder = function() {
   this.getErrors = function() {
     var orderErrors = getOrderErrors();
 
-    return typeErrors;
+    return typeErrors.concat(orderErrors);
 
     function getOrderErrors() {
-      for (var i = 0; i < props.length; i++) {
+      var propsOrder = peruse.rules.PROPERTIES_ORDER;
+      var orderErrors = [];
 
+      for (var i = 1; i < props.length; i++) {
+        if (!propsOrder[props[i].id]) {
+          continue;
+        }
+
+        if (propsOrder[props[i].id] < propsOrder[props[i - 1].id]) {
+          orderErrors.push(
+            'Property "' + props[i].id + '" appears after "' + props[i - 1].id +
+            '", but should appear before.'
+          );
+        }
       }
+
+      return orderErrors;
     }
   }
 
@@ -459,10 +476,10 @@ peruse.fix = (function() {
  * @namespace
  */
 peruse.rules = (function() {
-  return {
-    MAX_LINE_LENGTH: 100,
-    MAX_DEPTH: 7,
-    PROPERTIES_ORDER: [
+  var properties_order = getPropertiesOrder();
+
+  function getPropertiesOrder() {
+    var propsOrderArr = [
       // Box properties
       'clear',
       'cursor',
@@ -561,6 +578,19 @@ peruse.rules = (function() {
       'background-position',
 
       'quotes'
-    ]
+    ];
+    var propsOrderObj = {};
+
+    for (var i = 0; i < propsOrderArr.length; i++) {
+      propsOrderObj[propsOrderArr[i]] = i;
+    }
+
+    return propsOrderObj;
+  }
+
+  return {
+    MAX_LINE_LENGTH: 100,
+    MAX_DEPTH: 7,
+    PROPERTIES_ORDER: properties_order
   };
 })();
