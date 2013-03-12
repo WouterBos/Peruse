@@ -3,26 +3,14 @@
  */
  
  
-html {
-    background: #f9f9f9;
-}
-
-body > form {
-    position: relative;
-}
-
-
-
-.gp_content {
+#gp_content {
     background: #ffffff;
 }
 
 
-/* Here's some @foo: 10px; */
 .gp_footer {
-    @foo: 10px;
-    .bar;
     .gp_linear(@gp_colorHigh - #1a1a1a, @gp_colorHigh - #060606);
+    @foo: 10px;
 
     border-top: 1px solid #dddddd;
     padding: @gp_gridBlockSpacing / 2;
@@ -34,11 +22,14 @@ body > form {
     a {
         margin-right: 0.25em;
     }
+
+    .bar;
 }
 
 
 
 .graphite_title {
+
     .gp_linearGradient(#f9f9f9, #e5e5e5);
     clear: both;
     margin-top: 16px;
@@ -84,176 +75,11 @@ body > form {
         .gp_heading2;
         font-weight: bold;
     }
-}
-
-
-.graphite_demoStage_menu {
-    position: relative;
-    top: 1px;
     
-    a {
-        display: inline-block;
-        .gp_borderRadius(3px, 3px, 0, 0);
+    [class] {
+        .gp_clear();
         .gp_boxShadow(0, 0, 5px, #999999);
-        border: 1px solid #aaa;
-        border-bottom-width: 0;
-        padding: @gp_gridBlockSpacing/5 @gp_gridBlockSpacing/3;
-        color: #333333;
-        font-size: 1.2em;
-        text-decoration: none;
-        background: @gp_colorHigh - #111;
-    }
-    a:hover {
-        .gp_boxShadow(0, 0, 5px, #333333);
-        color: @gp_colorLow;
-        background: @gp_colorHigh;
-    }
-    a + a {
-        margin-left: @gp_gridBlockSpacing/10;
-    }
-    
-    a.active {
-        color: @gp_colorLow;
-        font-weight: bold;
-    }
-}
-
-
-*.graphite_getCode {
-    a {
-        .gp_linearGradient(@start: @gp_colorLow + #777, @end: @gp_colorLow);
-        .gp_transition(all, @time: 0.5, @easing: ease-out);
-        .gp_borderRadius(3px, 3px, 3px, 3px);
         position: relative;
-        display: inline-block;
-        margin-right: 4px;
-        border: 1px solid @gp_colorHigh;
-        padding: 2px 4px;
-        color: @gp_colorHigh;
-        text-align: center;
-        font-family: Consolas, "Lucida Console", "Courier New", Courier, monospace;
-        text-shadow: 1px 1px 0 @gp_colorLow;
-        text-decoration: none;
+        margin-bottom: @gp_gridBlockSpacing;
     }
-
-    a {
-        
-    }
-    
-    a.hover {
-        border: 1px solid @gp_colorLow;
-    }
-
-    a.active {
-        .gp_linearGradient(@start: @gp_color1, @end: @gp_colorLow + (@gp_color1 - #555));
-    }
-    
-    *.graphite_getCodeFeedback {
-        .gp_opacity(0);
-        .gp_borderRadius(3px, 3px, 3px, 3px);
-        display: inline-block;
-        margin-top: 5px;
-        border: 1px solid @gp_colorLow + #888;
-        padding: 1px 5px 0 5px;
-        font-size: 0.9em;
-        background: @gp_colorHigh - #111;
-    }
-}
-
-
-
-*.graphite_browser {
-    float: left;
-    margin-left: -@gp_gridBlockSpacing/4;
-    
-    li {
-        float: left;
-        margin-left: @gp_gridBlockSpacing/4;
-        width: 38px;
-        height: 50px;
-        overflow: hidden;
-    }
-    li.graphite_browserUnsupported {
-        .gp_opacity();
-    }
-    
-    *.graphite_browserIcon {
-        display: block;
-        height: 32px;
-        background-color: #ff00ff;
-        text-indent: -9999em;
-    }
-    
-    *.graphite_browserVersion {
-        display: block;
-        text-align: center;
-        font-size: 0.9em;
-        text-indent: 1px;
-    }
-    
-    *.graphite_browserIcon {
-        background: url(/Internal/images/sprite.png) no-repeat -9999em -9999em;
-    }
-
-    *.graphite_browserMsie {
-        background-position: -100px 0;
-    }
-
-    *.graphite_browserFirefox {
-        background-position: -50px 0;
-    }
-
-    *.graphite_browserChrome {
-        background-position: -149px 0;
-    }
-
-    *.graphite_browserSafari {
-        background-position: -198px 0;
-    }
-
-    *.graphite_browserOpera {
-        background-position: 2px 0;
-    }
-
-    *.graphite_browserIpad {
-        background-position: -246px 0;
-    }
-
-    *.graphite_browserAndroid {
-        background-position: -295px 0;
-    }
-
-    *.graphite_browserWindowsphone {
-        background-position: -349px 0;
-    }
-
-    *.graphite_browserBlackberry {
-        background-position: -399px 0;
-    }
-
-    *.graphite_browserIphone {
-        background-position: -442px 0;
-    }
-}
-
-
-
-/* Text styling */
-.graphite_inDevelopment a {
-    color: #ff0000;
-}
-
-
-
-/* Syntax highlight config */
-.syntaxhighlighter .toolbar {
-    display: none;    
-}
-
-
-
-.graphite_logo {
-    position: absolute;
-    top: -5px;
-    right: 18px;
 }

@@ -332,6 +332,7 @@ peruse.check = function() {
  * @constructor
  */
 peruse.check.propertiesOrder = function() {
+  var propsOrder = getPropsOrder();
   var props = [];
   var previousType = '';
   var typeOrder = {
@@ -339,8 +340,15 @@ peruse.check.propertiesOrder = function() {
     reference: 1,
     style: 2
   };
-  var errors = [];
+  var typeErrors = [];
+  var orderErrors = [];
 
+  /**
+   * Adds style properties to internal array. Properties have to be added
+   * in the way they are ordered in the stylesheet.
+   *
+   * @param {String} property A property of a stylesheet.
+   */
   this.addProperty = function(property) {
     var id = property.match(peruse.regex.property)[0];
     id = id.replace(/[:(;)].*/g, '');
@@ -360,31 +368,44 @@ peruse.check.propertiesOrder = function() {
       type: type
     };
 
-    //print(newProp.id);
-    //print('   ' + newProp.type);
     props.push(newProp);
 
     function checkTypeOrder(type) {
       if (typeOrder[type] < typeOrder[previousType]) {
-        print(typeOrder[type], typeOrder[previousType], id);
-        //print(property.length +
-        //  ' | Property "' + id.length + '" of type "' + type + '" cannot be ' +
-        //  'preceded by properties of type "' + previousType + '"'
-        //);
-        //errors.push(
-        //  'Property "' + id + '" of type "' + type + '" cannot be ' +
-        //  'preceded by properties of type "' + previousType + '"'
-        //);
+        typeErrors.push(
+          'Property "' + id + '" of type "' + type + '" cannot be ' +
+          'preceded by properties of type "' + previousType + '"'
+        );
       }
 
       previousType = type;
     }
   }
 
-  this.getErrors = function() {
-    return errors;
+  function getPropsOrder() {
+
   }
 
+  /**
+   * Get all errors related to the order structure.
+   * @return {Array} Array of error messages.
+   */
+  this.getErrors = function() {
+    var orderErrors = getOrderErrors();
+
+    return typeErrors;
+
+    function getOrderErrors() {
+      for (var i = 0; i < props.length; i++) {
+
+      }
+    }
+  }
+
+  /**
+   * Get the total amount of properties that are currently stored in the object.
+   * @return {Number} Total amount of properties stored.
+   */
   this.length = function() {
     return props.length;
   }
@@ -440,6 +461,106 @@ peruse.fix = (function() {
 peruse.rules = (function() {
   return {
     MAX_LINE_LENGTH: 100,
-    MAX_DEPTH: 7
+    MAX_DEPTH: 7,
+    PROPERTIES_ORDER: [
+      // Box properties
+      'clear',
+      'cursor',
+      'display',
+      'float',
+      'opacity',
+      'visibility',
+
+      // Positioning
+      'position',
+      'top',
+      'right',
+      'bottom',
+      'left',
+      'z-index',
+
+      // Margin
+      'margin',
+      'margin-top',
+      'margin-right',
+      'margin-bottom',
+      'margin-left',
+
+      // Border
+      'outline',
+      'border',
+      'border-top',
+      'border-right',
+      'border-bottom',
+      'border-left',
+      'border-width',
+      'border-top-width',
+      'border-right-width',
+      'border-bottom-width',
+      'border-left-width',
+      'border-style',
+      'border-top-style',
+      'border-right-style',
+      'border-bottom-style',
+      'border-left-style',
+      'border-color',
+      'border-top-color',
+      'border-right-color',
+      'border-bottom-color',
+      'border-left-color',
+
+      // Padding
+      'padding',
+      'padding-top',
+      'padding-right',
+      'padding-bottom',
+      'padding-left',
+
+      // Dimensions
+      'width',
+      'min-width',
+      'max-width',
+      'height',
+      'min-height',
+      'max-height',
+
+      // Content box behaviour
+      'content',
+      'list-style',
+      'overflow',
+      'white-space',
+
+      // Table properties
+      'table-layout',
+      'caption-side',
+      'border-collapse',
+      'border-spacing',
+      'empty-cells',
+
+      // Text styling
+      'color',
+      'font',
+      'font-family',
+      'font-size',
+      'font-weight',
+      'letter-spacing',
+      'line-height',
+      'text-align',
+      'text-indent',
+      'text-transform',
+      'text-decoration',
+      'vertical-align',
+      'word-spacing',
+
+      // Background
+      'background',
+      'background-attachment',
+      'background-color',
+      'background-image',
+      'background-repeat',
+      'background-position',
+
+      'quotes'
+    ]
   };
 })();
