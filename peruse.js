@@ -138,7 +138,9 @@ peruse.check = function() {
     isComment: false,
     nestDepth: 0
   };
-  var propsOrder = new peruse.check.propertiesOrder();
+  var propsOrder = new peruse.check.propertiesOrder({
+    lineStart: 1
+  });
 
   function addError(str, fixer, lineStart, lineEnd) {
     var fixed = '';
@@ -334,7 +336,7 @@ peruse.check = function() {
         lineEnd: config.lineCount
       });
 
-      if (propOrderErrors.length > 0) {
+      if (propOrderErrors.errors.length > 0) {
         for (var i = 0; i < propOrderErrors.errors.length; i++) {
           addError(
             propOrderErrors.errors[i],
@@ -377,7 +379,6 @@ peruse.check.propertiesOrder = function(cfg) {
   };
   var typeErrors = [];
   var orderErrors = [];
-  console.log(cfg.lineStart);
   var lines = {
     lineStart: cfg.lineStart
   };
@@ -696,3 +697,4 @@ peruse.rules = (function() {
     PROPERTIES_ORDER: properties_order
   };
 })();
+
