@@ -46,6 +46,9 @@ var peruse = (function() {
 
 
 
+
+
+
 /**
  * Collection of regex
  * @namespace
@@ -53,6 +56,9 @@ var peruse = (function() {
 peruse.regex = {
   property: /([.#]\w*[(;]|[@\w].*[:][\W].*[^\{$])/
 };
+
+
+
 
 
 
@@ -118,6 +124,9 @@ peruse.checker = function(code, arg_commandArgs) {
 
 
 
+
+
+
 /**
  * Collection of helper functions to check some functionality.
  *
@@ -131,8 +140,9 @@ peruse.check = function() {
   };
   var propsOrder = new peruse.check.propertiesOrder();
 
-  function addError(str, fixer) {
+  function addError(str, fixer, lineStart, lineEnd) {
     var fixed = '';
+    var error = '';
 
     if (config.commandArgs.fix == true && typeof(fixer) == 'function') {
       config.line = fixer(config.line);
@@ -143,9 +153,13 @@ peruse.check = function() {
     if (config.results.errors[config.lineCount] == undefined) {
       config.results.errors[config.lineCount] = new Array();
     }
-    config.results.errors[config.lineCount].push(
-      str + ' on line ' + (config.lineCount + 1 + fixed + '.')
-    );
+    if (lineStart && lineEnd) {
+      error = str + ' between line ' + (lineStart + 1) + ' and ' +
+              (lineEnd + 1) + fixed + '.';
+    } else {
+      error = str + ' on line ' + (config.lineCount + 1 + fixed + '.');
+    }
+    config.results.errors[config.lineCount].push(error);
     config.results.summary.errorCount++;
   }
 
@@ -316,15 +330,24 @@ peruse.check = function() {
     var braceClose = line.match(/}/g);
 
     if (braceOpen && propsOrder.length() > 0) {
-      var propOrderErrors = propsOrder.getErrors();
+      var propOrderErrors = propsOrder.getErrors({
+        lineEnd: config.lineCount
+      });
 
       if (propOrderErrors.length > 0) {
-        for (var i = 0; i < propOrderErrors.length; i++) {
-          addError(propOrderErrors[i]);
+        for (var i = 0; i < propOrderErrors.errors.length; i++) {
+          addError(
+            propOrderErrors.errors[i],
+            null,
+            propOrderErrors.lines.lineStart,
+            propOrderErrors.lines.lineEnd
+          );
         }
       }
 
-      propsOrder = new peruse.check.propertiesOrder();
+      propsOrder = new peruse.check.propertiesOrder({
+        lineStart: config.lineCount
+      });
     }
 
     if (config.lineClean.match(peruse.regex.property) != null) {
@@ -335,11 +358,16 @@ peruse.check = function() {
 
 
 
+
+
+
 /**
  * Object for checking and fixing the style property order.
  * @constructor
+ * @param {Object} cfg Config object.
+ * @param {String|Null} cfg.lineStart Line number where first property appeared.
  */
-peruse.check.propertiesOrder = function() {
+peruse.check.propertiesOrder = function(cfg) {
   var props = [];
   var previousType = '';
   var typeOrder = {
@@ -349,6 +377,10 @@ peruse.check.propertiesOrder = function() {
   };
   var typeErrors = [];
   var orderErrors = [];
+  console.log(cfg.lineStart);
+  var lines = {
+    lineStart: cfg.lineStart
+  };
 
   /**
    * Adds style properties to internal array. Properties have to be added
@@ -391,27 +423,39 @@ peruse.check.propertiesOrder = function() {
 
   /**
    * Get all errors related to the order structure.
+   * @param {Object} cfg Config object.
+   * @param {String} cfg.lineEnd Line number where last property appeared.
    * @return {Array} Array of error messages.
    */
-  this.getErrors = function() {
+  this.getErrors = function(cfg) {
+    lines.lineEnd = cfg.lineEnd;
     var orderErrors = getOrderErrors();
 
-    return typeErrors.concat(orderErrors);
+    return {
+      lines: lines,
+      errors: typeErrors.concat(orderErrors)
+    };
 
     function getOrderErrors() {
       var propsOrder = peruse.rules.PROPERTIES_ORDER;
       var orderErrors = [];
+      var previousProp = '';
 
-      for (var i = 1; i < props.length; i++) {
+      for (var i = 0; i < props.length; i++) {
         if (!propsOrder[props[i].id]) {
           continue;
         }
 
-        if (propsOrder[props[i].id] < propsOrder[props[i - 1].id]) {
+        if (previousProp &&
+            propsOrder[props[i].id] < propsOrder[previousProp]) {
           orderErrors.push(
-            'Property "' + props[i].id + '" appears after "' + props[i - 1].id +
-            '", but should appear before.'
+            'Property "' + props[i].id + '" musn\'t appear after "' +
+            previousProp + '"'
           );
+        }
+
+        if (propsOrder[props[i].id]) {
+          previousProp = props[i].id;
         }
       }
 
@@ -427,6 +471,9 @@ peruse.check.propertiesOrder = function() {
     return props.length;
   }
 };
+
+
+
 
 
 
@@ -470,6 +517,9 @@ peruse.fix = (function() {
 
 
 
+
+
+
 /**
  * Code convention rules are stored here
  *
@@ -480,6 +530,16 @@ peruse.rules = (function() {
 
   function getPropertiesOrder() {
     var propsOrderArr = [
+      // Page properties
+      'marks',
+      'orphans',
+      'page',
+      'page-break-after',
+      'page-break-before',
+      'page-break-inside',
+      'size',
+      'widows',
+
       // Box properties
       'clear',
       'cursor',
@@ -488,8 +548,16 @@ peruse.rules = (function() {
       'opacity',
       'visibility',
 
+      // Table properties
+      'table-layout',
+      'caption-side',
+      'border-collapse',
+      'border-spacing',
+      'empty-cells',
+
       // Positioning
       'position',
+      'clip',
       'top',
       'right',
       'bottom',
@@ -505,6 +573,9 @@ peruse.rules = (function() {
 
       // Border
       'outline',
+      'outline-color',
+      'outline-style',
+      'outline-width',
       'border',
       'border-top',
       'border-right',
@@ -535,49 +606,80 @@ peruse.rules = (function() {
 
       // Dimensions
       'width',
-      'min-width',
       'max-width',
+      'min-width',
       'height',
-      'min-height',
       'max-height',
+      'min-height',
 
       // Content box behaviour
-      'content',
-      'list-style',
       'overflow',
       'white-space',
 
-      // Table properties
-      'table-layout',
-      'caption-side',
-      'border-collapse',
-      'border-spacing',
-      'empty-cells',
+      // List styles
+      'list-style',
+      'list-style-image',
+      'list-style-position',
+      'list-style-type',
+
+      // Generated content
+      'content',
+      'counter-increment',
+      'counter-reset',
+      'quotes',
+      'marker-offset',
 
       // Text styling
       'color',
+      'direction',
       'font',
       'font-family',
       'font-size',
+      'font-size-adjust',
+      'font-stretch',
+      'font-style',
+      'font-variant',
       'font-weight',
       'letter-spacing',
-      'line-height',
       'text-align',
-      'text-indent',
-      'text-transform',
+      'line-height',
       'text-decoration',
+      'text-indent',
+      'text-shadow',
+      'text-transform',
+      'unicode-bidi',
       'vertical-align',
       'word-spacing',
+
+      // Speech
+      'azimuth',
+      'cue',
+      'cue-after',
+      'cue-before',
+      'elevation',
+      'pause',
+      'pause-after',
+      'pause-before',
+      'pitch',
+      'pitch-range',
+      'play-during',
+      'richness',
+      'speak',
+      'speak-header',
+      'speak-numeral',
+      'speak-punctuation',
+      'speech-rate',
+      'stress',
+      'voice-family',
+      'volume',
 
       // Background
       'background',
       'background-attachment',
       'background-color',
       'background-image',
-      'background-repeat',
       'background-position',
-
-      'quotes'
+      'background-repeat'
     ];
     var propsOrderObj = {};
 
