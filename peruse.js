@@ -95,6 +95,7 @@ peruse.checker = function(code, arg_commandArgs) {
       check.documentComment();
     }
     check.nestDepth();
+    check.trimmed();
     check.colons();
     check.tabs();
     check.multilineComments();
@@ -324,6 +325,16 @@ peruse.check = function() {
   }
 
   /**
+   * Checks for useless spaces
+   */
+  this.trimmed = function() {
+    var endsWithWhiteSpace = config.line.match(/\s*$/g);
+    if (endsWithWhiteSpace && endsWithWhiteSpace[0].length > 0) {
+      addError('Extra space at end of line', peruse.fix.trimmed);
+    }
+  }
+
+  /**
    * Checks if styling properties are properly ordered.
    */
   this.propertiesOrder = function() {
@@ -508,6 +519,13 @@ peruse.fix = (function() {
     },
 
     /**
+     * Removes superfluous spaces a the end of the line.
+     */
+    trimmed: function(line) {
+      return line.replace(/\s*$/g, '');
+    },
+
+    /**
      * Changes tabs into spaces.
      */
     tabs: function(line) {
@@ -515,6 +533,7 @@ peruse.fix = (function() {
     }
   };
 })();
+
 
 
 
