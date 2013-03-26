@@ -1,7 +1,7 @@
 About Peruse
 ============
 
-Checks Less CSS files wether they comply with the [PAT code convention](https://gist.github.com/WouterBos/4772202).
+Checks Less CSS files whether they comply with the [PAT code convention](https://gist.github.com/WouterBos/4772202).
 
 
 
