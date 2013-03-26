@@ -24,13 +24,13 @@ How to use it
 
 Peruse is run from command prompt with Ringo. This is how you run Peruse:
 
-Check a single file:
+Check a single file:  
 `ringo main.js -file=Less/test.less`
 
-Check multiple files:
+Check multiple files:  
 `ringo main.js -file=Less/test-bad.less;Less/test-good.less`
 
-Automatically fix error: (USE AT YOUR OWN RISK)
+Automatically fix error: (USE AT YOUR OWN RISK)  
 `ringo main.js -file=Less/test.less`
 
 
