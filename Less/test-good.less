@@ -7,10 +7,10 @@
 /*
  * Always start a mixin with some description and prefix it with something.
  */
-.pw_someClass {
-	clear: both; // Some comment on some line of code.
-	display: block;
-	color: #f00;
+.prfx_someClass {
+    clear: both; // Some comment on some line of code.
+    display: block;
+    color: #f00;
     background: @gp_colorHigh;
 }
 
@@ -23,13 +23,159 @@
     .level2 {
         .level3 {
             .level4 {
-                .level5 {     
-                    .level6 {
-                        .level7 {
-                        }
-                    }
+                .level5 {
                 }
             }
         }
     }
+}
+
+
+
+/**
+ * Property order
+ */
+.prfx_blockName {
+    /* Variables, followed by a blank line */
+    @foo: 1px;
+
+    /* References to mixins */
+    .transform(rotate(7deg));
+    /* Page properties */
+    marks: value;
+    orphans: value;
+    page: value;
+    page-break-after: value;
+    page-break-before: value;
+    page-break-inside: value;
+    size: value;
+    widows: value;
+    /* Box properties */
+    clear: value;
+    cursor: value;
+    display: value;
+    float: value;
+    opacity: value;
+    visibility: value;
+    /* Table properties */
+    table-layout: value;
+    caption-side: value;
+    border-collapse: value;
+    border-spacing: value;
+    empty-cells: value;
+    /* Positioning */
+    position: value;
+    clip: value;
+    top: value;
+    right: value;
+    bottom: value;
+    left: value;
+    z-index: value;
+    /* Margin */
+    margin: value;
+    margin-top: value;
+    margin-right: value;
+    margin-bottom: value;
+    margin-left: value;
+    /* Border */
+    outline: value;
+    outline-color: value;
+    outline-style: value;
+    outline-width: value;
+    border: value;
+    border-top: value;
+    border-right: value;
+    border-bottom: value;
+    border-left: value;
+    border-width: value;
+    border-top-width: value;
+    border-right-width: value;
+    border-bottom-width: value;
+    border-left-width: value;
+    border-style: value;
+    border-top-style: value;
+    border-right-style: value;
+    border-bottom-style: value;
+    border-left-style: value;
+    border-color: value;
+    border-top-color: value;
+    border-right-color: value;
+    border-bottom-color: value;
+    border-left-color: value;
+    /* Padding */
+    padding: value;
+    padding-top: value;
+    padding-right: value;
+    padding-bottom: value;
+    padding-left: value;
+    /* Dimensions */
+    width: value;
+    max-width: value;
+    min-width: value;
+    height: value;
+    max-height: value;
+    min-height: value;
+    /* Content box behaviour */
+    overflow: value;
+    white-space: value;
+    /* List styles */
+    list-style: value;
+    list-style-image: value;
+    list-style-position: value;
+    list-style-type: value;
+    /* Generated content */
+    content: value;
+    counter-increment: value;
+    counter-reset: value;
+    quotes: value;
+    marker-offset: value;
+    /* Text styling */
+    color: value;
+    direction: value;
+    font: value;
+    font-family: value;
+    font-size: value;
+    font-size-adjust: value;
+    font-stretch: value;
+    font-style: value;
+    font-variant: value;
+    font-weight: value;
+    letter-spacing: value;
+    text-align: value;
+    line-height: value;
+    text-decoration: value;
+    text-indent: value;
+    text-shadow: value;
+    text-transform: value;
+    unicode-bidi: value;
+    vertical-align: value;
+    word-spacing: value;
+    /* Speech */
+    azimuth: value;
+    cue: value;
+    cue-after: value;
+    cue-before: value;
+    elevation: value;
+    pause: value;
+    pause-after: value;
+    pause-before: value;
+    pitch: value;
+    pitch-range: value;
+    play-during: value;
+    richness: value;
+    speak: value;
+    speak-header: value;
+    speak-numeral: value;
+    speak-punctuation: value;
+    speech-rate: value;
+    stress: value;
+    voice-family: value;
+    volume: value;
+    /* Background */
+    background: value;
+    background-attachment: value;
+    background-color: value;
+    background-image: value;
+    background-position: value;
+    background-repeat: value;
 }

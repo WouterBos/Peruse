@@ -5,7 +5,7 @@
 var peruse = (function() {
   return {
     /**
-     * Checks the Less code
+     * Checks the Less code of a file
      *
      * @memberOf peruse
      * @param  {String} code The Less code as string.
@@ -19,6 +19,7 @@ var peruse = (function() {
       var errorsLength2;
       var results = checker.run();
 
+      // Print error check summary
       print('Checking ' + fileName);
       if (results.summary.errorCount > 0) {
         print('  ' + results.summary.errorCount + ' errors found.');
@@ -28,6 +29,7 @@ var peruse = (function() {
       }
       errorsLength1 = results.errors.length;
 
+      // Print all errors
       for (var i = 0; i < errorsLength1; i++) {
         if (results.errors[i] != undefined) {
           errorsLength2 = results.errors[i].length;
@@ -206,8 +208,11 @@ peruse.check = function() {
       var braceOpen = line.match(/{/g);
       var braceClose = line.match(/}/g);
 
+      config.braceOpen = false;
+
       if (braceOpen) {
         depthChange += braceOpen.length;
+        config.braceOpen = true;
         if (braceOpen.length > 1) {
           addError('Multiple opening curly braces');
         }
@@ -366,6 +371,26 @@ peruse.check = function() {
     if (config.lineClean.match(peruse.regex.property) != null) {
       propsOrder.addProperty(config.line);
     }
+  }
+
+  /**
+   * Checks if prefixes are being used.
+   */
+  this.prefix = function() {
+    var line = config.lineClean;
+    var braceOpen = line.match(/{/g);
+
+    // IMPLEMENT
+  }
+
+  /**
+   * Checks if the selectors are correctly styled.
+   */
+  this.selector = function() {
+    var line = config.lineClean;
+    var braceOpen = line.match(/{/g);
+
+    // IMPLEMENT
   }
 };
 
@@ -712,7 +737,7 @@ peruse.rules = (function() {
 
   return {
     MAX_LINE_LENGTH: 100,
-    MAX_DEPTH: 7,
+    MAX_DEPTH: 5,
     PROPERTIES_ORDER: properties_order
   };
 })();

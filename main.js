@@ -17,7 +17,7 @@ function main(args) {
     // Get file names
     if (system.args[i].indexOf('-file=') > -1) {
       args.fileName = system.args[i].replace('-file=', '');
-      if (args.fileName.indexOf(';') > -1) {
+      if (args.fileName.indexOf(';') == -1) {
         args.fileName = [args.fileName];
       } else {
         args.fileName = args.fileName.split(';');
@@ -42,7 +42,7 @@ function main(args) {
     );
 
     // Save fixes
-    if (results.codeFixed != code) {
+    if (results.summary.fixedCount > 0) {
       fs.write(args.fileName[i] + '.bak', code);
       fs.write(args.fileName[i], results.codeFixed);
     }
@@ -54,8 +54,10 @@ function main(args) {
       var value = str.replace('-' + flag + '=', '');
       if (value == 'true') {
         args[flag] = true;
+      } else if (value == 'false') {
+        args[flag] = false;
       } else {
-        args[flag] = true;
+        args[flag] = value;
       }
     }
   }

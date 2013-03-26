@@ -1,7 +1,7 @@
 About Peruse
 ============
 
-Checks Less CSS files wether they comply with the PAT code convention (https://gist.github.com/WouterBos/4772202)
+Checks Less CSS files wether they comply with the [PAT code convention](https://gist.github.com/WouterBos/4772202).
 
 
 
@@ -24,18 +24,22 @@ How to use it
 
 Peruse is run from command prompt with Ringo. This is how you run Peruse:
 
-In case of multiple files:
-ringo main.js -file=Less/test-bad.less;Less/test-good.less
+Check a single file:
+`ringo main.js -file=Less/test.less`
 
-In case of a single file
-ringo main.js -file=Less/test.less
+Check multiple files:
+`ringo main.js -file=Less/test-bad.less;Less/test-good.less`
+
+Automatically fix error: (USE AT YOUR OWN RISK)
+`ringo main.js -file=Less/test.less`
 
 
 Directory structure
 ===================
 
-|-- config   RingoJS folder.
-|-- less     Some Less files to test Peruse.
-main.js      The runner. RingoJS has to run this file to get Peruse started.
-peruse.js    The Peruse library.
-run.bat      Windows batch file. Runs some tests on the files in the "less" folder.
+	|-- config     RingoJS folder.
+	|-- less       Some Less files to test Peruse.
+	main.js        The runner. RingoJS has to run this file to get Peruse started.
+	peruse.js      The Peruse library.
+	demo.bat       Windows batch file. It does a test on a 'bad' and a 'good' Less file.
+	test-dev.bat   Windows batch file used during development.
